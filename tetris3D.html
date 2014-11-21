@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Orbit controls and movement</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				color:#000;
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+
+			}
+
+			a {
+				color: red;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="container"></div>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - 3D Tetris Game
+		</div>
+
+		<script src="js/three.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>
+
+		<script src="js/libs/stats.min.js"></script>
+		
+		<script>
+
+			var container, stats;
+
+			var camera, controls, clock, scene, renderer, mesh, meshes = new Array();
+
+			var squareWidth = 10, squareSide = 30;
+			
+			var block;//The object for the current block
+			
+			var inc = 0;//holds time elapsed until next simulation step of game
+			
+			init();
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.z = 300;
+				camera.position.y = 150;
+
+				controls = new THREE.OrbitControls( camera );
+				controls.damping = 0.2;
+				controls.addEventListener( 'change', render );
+
+				scene = new THREE.Scene();
+				
+				// Draw the Grid
+				drawGrid();
+				
+				// Falling cubes background
+
+				var geometry = new THREE.BoxGeometry(10,10,10);
+				var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
+
+				for ( var i = 0; i < 2000; i ++ ) {
+
+					mesh = new THREE.Mesh( geometry, material );
+					mesh.position.x = ( Math.random() - 0.5 ) * 2000;
+					mesh.position.y = ( Math.random() - 0.5 ) * 1000;
+					mesh.position.z = Math.random() * -1000 -squareSide*squareWidth;
+					mesh.matrixAutoUpdate = true;
+					meshes.push(mesh);
+					scene.add( meshes[i]);
+				}
+				
+				var blockGeometry = new THREE.BoxGeometry(30,10,20);
+				
+				var materialB = new THREE.MeshLambertMaterial( { color:0xD11919, shading: THREE.FlatShading } );
+				block = new THREE.Mesh(blockGeometry,materialB);
+				block.position.y = 35;
+				block.position.x = 5;
+				block.position.z = 5;
+				block.matrixAutoUpdate = true;
+				scene.add(block);
+				
+				// lights
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 1, 1, 1 );
+				scene.add( light );
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( -1, 1, -1 );
+				scene.add( light );
+
+				light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
+
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: false } );
+				renderer.setClearColor( 0xffffff, 1 );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container = document.getElementById( 'container' );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				container.appendChild( stats.domElement );
+
+				// Add the different event listeners
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				document.addEventListener( 'keydown', onDocumentKeyDown, false );
+
+				// Add a clock to synchronize movements
+				
+				clock = new THREE.Clock(true);//true to start immediately
+				
+				animate();
+
+			}
+			//Changes the size of the rendered scence to fit the new window
+			//Also changes the camera aspect to the window aspect so as to view
+			//the same way
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+			
+			function drawGrid(){
+				linesMaterial = new THREE.LineBasicMaterial({color:0x000000,linewidth:2.0});
+				
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(new THREE.Vector3( - squareSide*squareWidth*0.5, 0, 0 ) );
+				geometry.vertices.push(new THREE.Vector3( squareSide*squareWidth*0.5, 0, 0 ));
+				
+				for ( var i = 0; i <= squareSide; i ++ ) {
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.z = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					scene.add( line );
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.x = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					line.rotation.y = 90 * Math.PI / 180;
+					scene.add( line );
+
+				}
+			}
+
+			function render() {
+				renderer.render( scene, camera);
+			}
+			
+			function animate() {
+				requestAnimationFrame(animate);
+				for (var i = 0; i < meshes.length; i++)
+				{
+					mesh = meshes[i];
+					mesh.position.y += -1;
+					if (mesh.position.y < -500)
+						mesh.position.y = 500;
+				}
+				inc += clock.getDelta();
+				if (inc > 1.0){
+					//block.position.y -= 10;
+					inc = 0;
+				}
+				controls.update();
+				stats.update();
+				render();
+			}
+			
+			
+			function onDocumentKeyDown( event ) {
+
+				switch( event.keyCode ) {
+
+					case 16:
+						isShiftDown = false;
+						//interact();
+						//render();
+						break;
+					case 65://A
+						break;
+					case 68://D
+						break;
+					case 87://W
+						break;
+					case 83://S
+						break;
+					case 81://Q
+						break;
+					case 69://E
+						break;
+					case 74://J
+						block.position.x -= 10;
+						render();
+						break;
+					case 76://L
+						block.position.x += 10;
+						render();
+						break;
+					case 73://I
+						block.position.z -= 10;
+						render();
+						break;
+					case 75://K
+						block.position.z += 10;
+						render();
+						break;
+				}
+				//console.log(block.position);
+			}
+
+		</script>
+
+	</body>
+</html>
