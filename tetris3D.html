@@ -38,7 +38,6 @@
 		</div>
 
 		<script src="js/three.min.js"></script>
-
 		<script src="js/controls/OrbitControls.js"></script>
 
 		<script src="js/libs/stats.min.js"></script>
@@ -59,7 +58,23 @@
 			init();
 
 			function init() {
-
+				var loader = new THREE.JSONLoader(); // init the loader util
+				var geometry= new THREE.Geometry();
+				// init loading
+				  var Bmaterial = new THREE.MeshLambertMaterial({ color:0xDFDFDF, shading: THREE.FlatShading });
+				loader.load('bishop.json', function (geometry) {
+				  // create a new material
+				  
+				  // create a mesh with models geometry and material
+				  var mesh = new THREE.Mesh(
+					geometry,
+					Bmaterial
+				  );
+				  
+				  mesh.rotation.y = -Math.PI/5;
+				  
+				  scene.add(mesh);
+				});
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
 				camera.position.z = 300;
 				camera.position.y = 150;
