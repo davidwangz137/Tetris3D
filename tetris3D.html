@@ -52,6 +52,7 @@
 			var squareWidth = 10, squareSide = 30;
 			
 			var block;//The object for the current block
+			var block2;
 			
 			var inc = 0;//holds time elapsed until next simulation step of game
 			
@@ -69,6 +70,25 @@
 
 				scene = new THREE.Scene();
 				
+				//Block creation
+				
+				var blockGeometry = new THREE.BoxGeometry(30,10,20);
+				
+				var materialB = new THREE.MeshLambertMaterial( { color:0xD11919, shading: THREE.FlatShading } );
+				block = new THREE.Mesh(blockGeometry,materialB);
+				block.position.y = 5;
+				block.position.x = 5;
+				block.position.z = 0;
+				block.matrixAutoUpdate = true;
+				scene.add(block);
+				
+				var blockGeometry2= new THREE.BoxGeometry(30,10,20);
+				var materialC = new THREE.MeshLambertMaterial( { color:0x0019FF, shading: THREE.FlatShading } );
+				block2 = new THREE.Mesh(blockGeometry,materialC);
+				block2.position.y=5;
+				block2.position.x=35;
+				block2.position.z=20;
+				scene.add(block2);
 				// Draw the Grid
 				drawGrid();
 				
@@ -87,16 +107,6 @@
 					meshes.push(mesh);
 					scene.add( meshes[i]);
 				}
-				
-				var blockGeometry = new THREE.BoxGeometry(30,10,20);
-				
-				var materialB = new THREE.MeshLambertMaterial( { color:0xD11919, shading: THREE.FlatShading } );
-				block = new THREE.Mesh(blockGeometry,materialB);
-				block.position.y = 35;
-				block.position.x = 5;
-				block.position.z = 5;
-				block.matrixAutoUpdate = true;
-				scene.add(block);
 				
 				// lights
 
@@ -139,6 +149,48 @@
 				animate();
 
 			}
+			
+			function onDocumentKeyDown( event ) {
+
+				switch( event.keyCode ) {
+
+					case 16:
+						isShiftDown = false;
+						//interact();
+						//render();
+						break;
+					case 65://A
+						break;
+					case 68://D
+						break;
+					case 87://W
+						break;
+					case 83://S
+						break;
+					case 81://Q
+						break;
+					case 69://E
+						break;
+					case 74://J
+						block.position.x -= 10;
+						render();
+						break;
+					case 76://L
+						block.position.x += 10;
+						render();
+						break;
+					case 73://I
+						block.position.z -= 10;
+						render();
+						break;
+					case 75://K
+						block.position.z += 10;
+						render();
+						break;
+				}
+				//console.log(block.position);
+			}
+			
 			//Changes the size of the rendered scence to fit the new window
 			//Also changes the camera aspect to the window aspect so as to view
 			//the same way
@@ -195,48 +247,6 @@
 				controls.update();
 				stats.update();
 				render();
-			}
-			
-			
-			function onDocumentKeyDown( event ) {
-
-				switch( event.keyCode ) {
-
-					case 16:
-						isShiftDown = false;
-						//interact();
-						//render();
-						break;
-					case 65://A
-						break;
-					case 68://D
-						break;
-					case 87://W
-						break;
-					case 83://S
-						break;
-					case 81://Q
-						break;
-					case 69://E
-						break;
-					case 74://J
-						block.position.x -= 10;
-						render();
-						break;
-					case 76://L
-						block.position.x += 10;
-						render();
-						break;
-					case 73://I
-						block.position.z -= 10;
-						render();
-						break;
-					case 75://K
-						block.position.z += 10;
-						render();
-						break;
-				}
-				//console.log(block.position);
 			}
 
 		</script>
