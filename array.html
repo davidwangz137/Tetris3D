@@ -78,8 +78,8 @@
 			function init() {
 
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.z = 300;
-				camera.position.y = 150;
+				//Origin camera state
+				camera.position.set(0,150,300);
 
 				controls = new THREE.OrbitControls( camera );
 				controls.damping = 0.2;
@@ -93,7 +93,7 @@
 				
 				// Falling cubes background
 
-				var geometry = new THREE.BoxGeometry(10,10,10);
+				var geometry = new THREE.BoxGeometry(10,30,10);
 
 				for ( var i = 0; i < 126; i ++ ) {
 					var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
@@ -141,6 +141,7 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 				document.addEventListener( 'keydown', onDocumentKeyDown, false );
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 				
 				// Add a clock to synchronize movements
 				
@@ -204,6 +205,19 @@
 
 			}
 			
+			//Piece selection
+			function onDocumentMouseDown( event ) {
+			
+			if (INTERSECTED)
+			{
+				if (INTERSECTED.material.color.getHex() == 0xff0000)
+					INTERSECTED.material.color.setHex(0xffffff);
+				else
+					INTERSECTED.material.color.setHex(0xff0000);
+			}
+			console.log("HERE");
+			}
+			
 			//Changes the size of the rendered scence to fit the new window
 			//Also changes the camera aspect to the window aspect so as to view
 			//the same way
@@ -216,29 +230,6 @@
 
 				render();
 
-			}
-			
-			function drawGrid(height){
-				linesMaterial = new THREE.LineBasicMaterial({color:0x000000,linewidth:2.0});
-				
-				var geometry = new THREE.Geometry();
-				geometry.vertices.push(new THREE.Vector3( - squareSide*squareWidth*0.5, 0, 0 ) );
-				geometry.vertices.push(new THREE.Vector3( squareSide*squareWidth*0.5, 0, 0 ));
-				
-				for ( var i = 0; i <= squareSide; i ++ ) {
-
-					var line = new THREE.Line( geometry, linesMaterial );
-					line.position.z = ( i * squareWidth ) - squareSide*squareWidth*0.5;
-					line.position.y = height;
-					scene.add( line );
-
-					var line = new THREE.Line( geometry, linesMaterial );
-					line.position.x = ( i * squareWidth ) - squareSide*squareWidth*0.5;
-					line.position.y = height;
-					line.rotation.y = 90 * Math.PI / 180;
-					scene.add( line );
-
-				}
 			}
 
 			function render() {
@@ -256,7 +247,7 @@
 					if (arr[a][b][c] == 1)
 					{
 						//console.log(a,b,c);
-						mesh.position.set(a*50-100,b*50-90,c*50-100);
+						mesh.position.set(a*50-100,b*50-80,c*50-100);
 					}
 					else
 					{
@@ -276,7 +267,7 @@
 
 				var intersects = raycaster.intersectObjects( scene.children );
 				
-				console.log(intersects.length);
+				//console.log(intersects.length);
 				
 				if ( intersects.length > 0 ) {
 					if (intersects[0].face != null)
@@ -303,6 +294,29 @@
 				controls.update();
 				stats.update();
 				render();
+			}
+			
+			function drawGrid(height){
+				linesMaterial = new THREE.LineBasicMaterial({color:0x000000,linewidth:2.0});
+				
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(new THREE.Vector3( - squareSide*squareWidth*0.5, 0, 0 ) );
+				geometry.vertices.push(new THREE.Vector3( squareSide*squareWidth*0.5, 0, 0 ));
+				
+				for ( var i = 0; i <= squareSide; i ++ ) {
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.z = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					line.position.y = height;
+					scene.add( line );
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.x = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					line.position.y = height;
+					line.rotation.y = 90 * Math.PI / 180;
+					scene.add( line );
+
+				}
 			}
 
 		</script>
