@@ -1,0 +1,43 @@
+// bishopMoves will take in the name of the bishop, the position pos,
+//   the grid of all the pieces, and the newGrid which it will return
+//   the method will check the Grid and return if the bishop can move to that
+//   square and return the modified newGrid with places the bishop can move to
+
+//Unfinished
+function bishopMoves (name, pos, grid, newGrid)
+{
+// variables for the direction something can move
+var is_diagonal_right_forward_able true;
+var is_diagonal_left_forward_able true;
+var is_diagonal_right_backward_able true;
+var is_diagonal_left_backward_able true;
+var is_up_able true;
+var is_down_able true;
+	
+//Checks the borders and if moving there is possible
+if (pos[0]+ 1 > 5 || pos[2] - 1 < 0)
+is_diagonal_right_forward_able = false;
+
+if (pos[1]+ 1 > 5)
+is_up_able = false;
+
+if (pos[0]- 1 < 0 || pos[2] - 1 < 0)
+is_diagonal_left_forward_able = false;
+
+if (pos[0] + 1 > 5 || pos [2] +1 > 5)
+is_diagonal_right_backward_able = false;
+
+if (pos[1]- 1 <0)
+is_down_able = false;
+
+if (pos[2]+ 1 > 5 || pos[0] - 1 < 0)
+is_diagonal_left_backward_able = false;
+
+//Move on the same plane
+while(is_diagonal_left_backward_able)(
+	if(grid[pos[0] - 1][pos[1]][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0] - 1][pos[1]][pos[2] + 1].charAt(0))
+	(newGrid[pos[0] - 1][pos[1]][pos[2]+ 1] = 1;)
+	
+	
+

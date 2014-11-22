@@ -1,0 +1,156 @@
+// kingMoves will take in the name of the king, the position pos,
+//   the grid of all the pieces, and the newGrid which it will return
+//   the method will check the Grid and return if the King can move to that
+//   square and return the modified newGrid with places the King can move to
+function kingMoves (name, pos, grid, newGrid)
+{
+//variables to check which directions it can move
+var is_up_able true;
+var is_down_able true;
+var is_left_able true;
+var is_right_able true;
+var is_forward_able true;
+var is_backward_able true;
+
+//Check borders of the board
+if (pos[0]+ 1 > 5)
+is_right_able = false;
+
+if (pos[1]+ 1 > 5)
+is_up_able = false;
+
+if (pos[2]- 1 < 0)
+is_forward_able = false;
+
+if (pos[0]- 1 <0)
+is_left_able = false;
+
+if (pos[1]- 1 <0)
+is_down_able = false;
+
+if (pos[2]+ 1 > 5)
+is_backward_able = false;
+
+// Right side of the king plus up one plane and down one plane
+if(is_right_able)(
+	if(grid[pos[0] + 1][pos[1]][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0] + 1][pos[1]][pos[2]].charAt(0))
+	(newGrid[pos[0]+ 1][pos[1]][pos[2]] = 1;)
+	
+	if(is_up_able)(
+		if(grid[pos[0] + 1][pos[1] + 1][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0] + 1][pos[1] + 1][pos[2]].charAt(0))
+		(newGrid[pos[0]+ 1][pos[1] + 1][pos[2]] = 1;))
+		
+	if(is_down_able)(
+		if(grid[pos[0] + 1][pos[1] - 1][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0] + 1][pos[1] - 1][pos[2]].charAt(0))
+		(newGrid[pos[0]+ 1][pos[1] - 1][pos[2]] = 1;)))
+
+// Left side of the king plus up one plane and down one plane
+if(is_left_able)(
+	if(grid[pos[0] - 1][pos[1]][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0] - 1][pos[1]][pos[2]].charAt(0))
+	(newGrid[pos[0]- 1][pos[1]][pos[2]] = 1;)
+	
+	if(is_up_able)(
+		if(grid[pos[0] - 1][pos[1] + 1][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0] - 1][pos[1] + 1][pos[2]].charAt(0))
+		(newGrid[pos[0]- 1][pos[1] + 1][pos[2]] = 1;))
+		
+	if(is_down_able)(
+		if(grid[pos[0] - 1][pos[1] - 1][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0] - 1][pos[1] - 1][pos[2]].charAt(0))
+		(newGrid[pos[0]- 1][pos[1] - 1][pos[2]] = 1;)))
+
+// Forward side of the king plus up one plane and down one plane
+if(is_forward_able)(
+	if(grid[pos[0]][pos[1]][pos[2] - 1] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1]][pos[2] - 1].charAt(0))
+	(newGrid[pos[0]][pos[1]][pos[2]- 1] = 1;)
+	
+	if(is_up_able)(
+		if(grid[pos[0]][pos[1] + 1][pos[2] - 1] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1] + 1][pos[2] - 1].charAt(0))
+		(newGrid[pos[0]][pos[1]+ 1][pos[2] - 1] = 1;))
+		
+	if(is_down_able)(
+		if(grid[pos[0]][pos[1] - 1][pos[2] - 1] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1] - 1][pos[2] - 1].charAt(0))
+		(newGrid[pos[0]][pos[1]- 1][pos[2] - 1] = 1;)))
+
+// Backward side of the king plus up one plane and down one plane		
+if(is_backward_able)(
+	if(grid[pos[0]][pos[1]][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1]][pos[2] + 1].charAt(0))
+	(newGrid[pos[0]][pos[1]][pos[2]+ 1] = 1;)
+	
+	if(is_up_able)(
+		if(grid[pos[0]][pos[1] + 1][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1] + 1][pos[2] + 1].charAt(0))
+		(newGrid[pos[0]][pos[1]+ 1][pos[2] + 1] = 1;))
+		
+	if(is_down_able)(
+		if(grid[pos[0]][pos[1] - 1][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1] - 1][pos[2] + 1].charAt(0))
+		(newGrid[pos[0]][pos[1]- 1][pos[2] + 1] = 1;)))
+	
+// Check the upper plane of the king
+if(is_up_able)(
+	if(grid[pos[0]][pos[1] + 1][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1] + 1][pos[2]].charAt(0))
+	(newGrid[pos[0]][pos[1]+ 1][pos[2]] = 1;)
+	
+	if(is_forward_able)(
+		if (is_right_able)(
+		if(grid[pos[0] + 1][pos[1] + 1][pos[2] - 1] == "0" ||
+		name.charAt(0) != grid[pos[0] + 1][pos[1] + 1][pos[2] - 1].charAt(0))
+		(newGrid[pos[0]+ 1][pos[1] + 1][pos[2] - 1] = 1;))
+		
+		if (is_left_able)(
+		if(grid[pos[0] - 1][pos[1] + 1][pos[2] - 1] == "0" ||
+		name.charAt(0) != grid[pos[0] -1][pos[1] + 1][pos[2] - 1].charAt(0))
+		(newGrid[pos[0]- 1][pos[1] + 1][pos[2] - 1] = 1;)))
+		
+	if(is_backward_able)(
+		if (is_right_able)(
+		if(grid[pos[0] + 1][pos[1] + 1][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0] + 1][pos[1] + 1][pos[2] + 1].charAt(0))
+		(newGrid[pos[0]+ 1][pos[1] + 1][pos[2] + 1] = 1;))
+		
+		if (is_left_able)(
+		if(grid[pos[0] - 1][pos[1] + 1][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0] - 1][pos[1] + 1][pos[2] + 1].charAt(0))
+		(newGrid[pos[0]- 1][pos[1] + 1][pos[2] + 1] = 1;))))
+
+// Check the lower plane of the king
+if(is_down_able)(
+	if(grid[pos[0]][pos[1] - 1][pos[2]] == "0" ||
+		name.charAt(0) != grid[pos[0]][pos[1] - 1][pos[2]].charAt(0))
+	(newGrid[pos[0]][pos[1]- 1][pos[2]] = 1;)
+	
+	if(is_forward_able)(
+		if (is_right_able)(
+		if(grid[pos[0] + 1][pos[1] - 1][pos[2] - 1] == "0" ||
+		name.charAt(0) != grid[pos[0] + 1][pos[1] - 1][pos[2] - 1].charAt(0))
+		(newGrid[pos[0]+ 1][pos[1] - 1][pos[2] - 1] = 1;))
+		
+		if (is_left_able)(
+		if(grid[pos[0] - 1][pos[1] - 1][pos[2] - 1] == "0" ||
+		name.charAt(0) != grid[pos[0] - 1][pos[1] - 1][pos[2] - 1].charAt(0))
+		(newGrid[pos[0]- 1][pos[1] - 1][pos[2] - 1] = 1;)))
+		
+	if(is_backward_able)(
+		if (is_right_able)(
+		if(grid[pos[0] + 1][pos[1] - 1][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0] + 1][pos[1] - 1][pos[2] + 1].charAt(0))
+		(newGrid[pos[0]+ 1][pos[1] - 1][pos[2] + 1] = 1;))
+		
+		if (is_left_able)(
+		if(grid[pos[0] - 1][pos[1] - 1][pos[2] + 1] == "0" ||
+		name.charAt(0) != grid[pos[0] - 1][pos[1] - 1][pos[2] + 1].charAt(0))
+		(newGrid[pos[0]- 1][pos[1] - 1][pos[2] + 1] = 1;))))
+
+//depends on how we want output to be handled
+//return newGrid;
+}
