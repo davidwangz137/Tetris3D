@@ -47,15 +47,19 @@
 
 			var container, stats;
 
-			var camera, controls, clock, scene, renderer, raycaster, mesh, meshes = new Array();
+			var camera, controls, clock, grid = new Array(), scene, renderer, raycaster, mesh, meshes = new Array();
 
-			var mouse = new THREE.Vector2(), INTERSECTED, PREV = null;
+			var mouse = new THREE.Vector2(), INTERSECTED, CURR = null;
 			
 			var squareWidth = 50, squareSide = 5;
+			
+			var selected = 0;//A variable to check if a piece is selected
 			
 			var inc = 0;//holds time elapsed until next simulation step of game
 			
 			//Create the 3 dimensional array
+			
+			//Each different character corresponds to a different model (use different colours to differentiate for now)
 			
 			var arr = new Array();
 			for (var i = 0; i < 5; i++)
@@ -66,12 +70,32 @@
 					arr[i][j] = new Array();
 					for (var k = 0; k < 5; k++)
 					{
-						arr[i][j][k] = 1;
+						arr[i][j][k] = 0;
 					}
 				}
 			}
 			
-			arr[1][2][2] = 0;//(x,y,z). X is to left, y to up, z to forward (to you).
+			arr[0][0] = [1, 1, 1, 1, 1],arr[1][0] = [1, 1, 1, 1, 1],arr[0][1] = [1, 1, 1, 1, 1],arr[1][1] = [1, 1, 1, 1, 1];
+			
+			arr[4][4] = [1, 1, 1, 1, 1],arr[3][4] = [1, 1, 1, 1, 1],arr[4][3] = [1, 1, 1, 1, 1],arr[3][3] = [1, 1, 1, 1, 1];
+			
+			var highl = new Array();
+			for (var i = 0; i < 5; i++)
+			{
+				highl[i] = new Array();
+				for (var j = 0; j < 5; j++)
+				{
+					highl[i][j] = new Array();
+					for (var k = 0; k < 5; k++)
+					{
+						highl[i][j][k] = 0;
+					}
+				}
+			}
+			
+			highl[0][4][1] = 1;
+			
+			//arr[1][2][2] = 0;//(x,y,z). X is to left, y to up, z to forward (to you).
 			
 			init();
 
@@ -90,9 +114,13 @@
 				scene = new THREE.Scene();
 				
 				// Draw the Grid
+				// Add plane for highlighting
 				
 				for (var i = 0; i < 5; i++)
+				{
 					drawGrid(50*i-100);
+					createGrid(50*i-100);
+				}
 				
 				// Falling cubes background
 
@@ -175,21 +203,29 @@
 				if (INTERSECTED.material.color.getHex() == 0xff0000)
 				{
 					INTERSECTED.material.color.setHex(0xffffff);
-					PREV = null;//No selected object
+					CURR = null;//No selected object
 				}
 				//If selecting something else
 				else
 				{
-					if (PREV)//If previous object exists
+					if (CURR)//If previous object exists
 					{
-						PREV.material.color.setHex(0xffffff);
+						CURR.material.color.setHex(0xffffff);
 					}
 					INTERSECTED.material.color.setHex(0xff0000);
-					PREV = INTERSECTED;//The previous object is the highlighted object
+					CURR = INTERSECTED;//The previous object is the highlighted object
 				}
 			}
+			else//If nothing is clicked on
+			{
+				if (CURR)//If previous object exists
+				{
+					CURR.material.color.setHex(0xffffff);
+				}
+				CURR = null;
+			}
 			
-			console.log("HERE");
+			console.log(CURR);
 			}
 			
 			//Changes the size of the rendered scence to fit the new window
@@ -228,6 +264,16 @@
 					{
 						mesh.position.set(20000,0,0);
 					}
+					if (highl[a][b][c] == 1)//Highlighted
+					{
+						//console.log(grid[a][b][c].material.opacity);
+						grid[a][b][c].material.opacity = 1;
+					}
+					else
+					{
+						if (grid[a][b][c])
+							grid[a][b][c].material.opacity = 0;
+					}
 				}
 				inc += clock.getDelta();
 				if (inc > 1.0){
@@ -245,7 +291,7 @@
 				//console.log(intersects.length);
 				
 				if ( intersects.length > 0 ) {
-					if (intersects[0].face != null)
+					if (intersects[0].face != null && intersects[ 0 ].object.material.transparent == false)
 					{
 						if ( INTERSECTED != intersects[ 0 ].object ) {
 							
@@ -256,16 +302,12 @@
 							INTERSECTED = intersects[ 0 ].object;
 							INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
 							INTERSECTED.material.emissive.setHex( 0xff0000 );
-
 						}
 					}
-
 				}
 				else {
-
 					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
 					INTERSECTED = null;
-
 				}
 				controls.update();
 				stats.update();
@@ -293,6 +335,26 @@
 					scene.add( line );
 
 				}
+			}
+			
+			function createGrid(height){
+				var planeGrid = new Array();
+				var geometry = new THREE.PlaneGeometry( 50, 50, 32);
+				for (var i = 0; i < 5; i++)
+				{
+					planeGrid[i] = new Array();
+					for (var j = 0; j < 5; j++)
+					{
+						var material = new THREE.MeshLambertMaterial( {color: 0x00ff00, side: THREE.DoubleSide} );
+						material.transparent = true;
+						var plane = new THREE.Mesh( geometry, material );
+						plane.rotation.x = 90 * Math.PI / 180;
+						plane.position.set(i*50-100,height,j*50-100);
+						planeGrid[i].push(plane);
+						scene.add( plane );
+					}
+				}
+				grid.push(planeGrid);
 			}
 			
 			function onDocumentKeyDown( event ) {
