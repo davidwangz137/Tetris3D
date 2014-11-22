@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Orbit controls and movement</title>
+		<title>Grid</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -47,8 +47,10 @@
 
 			var container, stats;
 
-			var camera, controls, clock, scene, renderer, mesh, meshes = new Array();
+			var camera, controls, clock, scene, renderer, raycaster, mesh, meshes = new Array();
 
+			var mouse = new THREE.Vector2(), INTERSECTED;
+			
 			var squareWidth = 50, squareSide = 5;
 			
 			var inc = 0;//holds time elapsed until next simulation step of game
@@ -87,21 +89,23 @@
 				
 				// Draw the Grid
 				for (var i = 0; i < 5; i++)
-					drawGrid(100*i);
+					drawGrid(50*i-100);
 				
 				// Falling cubes background
 
 				var geometry = new THREE.BoxGeometry(10,10,10);
-				var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
 
-				for ( var i = 0; i < 125; i ++ ) {
-
+				for ( var i = 0; i < 126; i ++ ) {
+					var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
 					mesh = new THREE.Mesh( geometry, material );
 					mesh.position.x = 2000;
 					mesh.matrixAutoUpdate = true;
 					meshes.push(mesh);
 					scene.add( meshes[i]);
 				}
+				
+				INTERSECTED = meshes[125];
+				meshes[125].position.set(2000,0,0);
 				
 				// lights
 
@@ -136,10 +140,15 @@
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				document.addEventListener( 'keydown', onDocumentKeyDown, false );
-
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				
 				// Add a clock to synchronize movements
 				
 				clock = new THREE.Clock(true);//true to start immediately
+				
+				// Add raycaster to select elements
+				
+				raycaster = new THREE.Raycaster();
 				
 				animate();
 
@@ -184,6 +193,15 @@
 						break;
 				}
 				//console.log(block.position);
+			}
+			
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
 			}
 			
 			//Changes the size of the rendered scence to fit the new window
@@ -238,7 +256,7 @@
 					if (arr[a][b][c] == 1)
 					{
 						//console.log(a,b,c);
-						mesh.position.set(a*50-100,b*100+10,c*50-100);
+						mesh.position.set(a*50-100,b*50-90,c*50-100);
 					}
 					else
 					{
@@ -249,6 +267,38 @@
 				if (inc > 1.0){
 					//block.position.y -= 10;
 					inc = 0;
+				}
+				// find intersections
+
+				var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );
+
+				raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+
+				var intersects = raycaster.intersectObjects( scene.children );
+				
+				console.log(intersects.length);
+				
+				if ( intersects.length > 0 ) {
+					if (intersects[0].face != null)
+					{
+						if ( INTERSECTED != intersects[ 0 ].object ) {
+
+							if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+
+							INTERSECTED = intersects[ 0 ].object;
+							INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+							INTERSECTED.material.emissive.setHex( 0xff0000 );
+
+						}
+					}
+
+				}
+				else {
+
+					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+
+					INTERSECTED = null;
+
 				}
 				controls.update();
 				stats.update();
