@@ -16,3 +16,10 @@ Implement 3D grid system
 Later:
 
 Add music
+
+#3D Chess 
+Blender exporter to javascript converter script
+https://github.com/mrdoob/three.js/tree/master/utils/exporters/blender 
+
+useful link
+http://blog.romanliutikov.com/post/58690562825/external-models-in-three-js
