@@ -49,7 +49,7 @@
 
 			var camera, controls, clock, scene, renderer, raycaster, mesh, meshes = new Array();
 
-			var mouse = new THREE.Vector2(), INTERSECTED;
+			var mouse = new THREE.Vector2(), INTERSECTED, PREV = null;
 			
 			var squareWidth = 50, squareSide = 5;
 			
@@ -78,7 +78,9 @@
 			function init() {
 
 				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				
 				//Origin camera state
+				
 				camera.position.set(0,150,300);
 
 				controls = new THREE.OrbitControls( camera );
@@ -88,6 +90,7 @@
 				scene = new THREE.Scene();
 				
 				// Draw the Grid
+				
 				for (var i = 0; i < 5; i++)
 					drawGrid(50*i-100);
 				
@@ -119,7 +122,6 @@
 
 				light = new THREE.AmbientLight( 0x222222 );
 				scene.add( light );
-
 
 				// renderer
 
@@ -153,6 +155,144 @@
 				
 				animate();
 
+			}
+			
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+			}
+			
+			//Piece selection
+			function onDocumentMouseDown( event ) {
+			
+			if (INTERSECTED)
+			{
+				//If it is already selected
+				if (INTERSECTED.material.color.getHex() == 0xff0000)
+				{
+					INTERSECTED.material.color.setHex(0xffffff);
+					PREV = null;//No selected object
+				}
+				//If selecting something else
+				else
+				{
+					if (PREV)//If previous object exists
+					{
+						PREV.material.color.setHex(0xffffff);
+					}
+					INTERSECTED.material.color.setHex(0xff0000);
+					PREV = INTERSECTED;//The previous object is the highlighted object
+				}
+			}
+			
+			console.log("HERE");
+			}
+			
+			//Changes the size of the rendered scence to fit the new window
+			//Also changes the camera aspect to the window aspect so as to view
+			//the same way
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+
+			function render() {
+				renderer.render( scene, camera);
+			}
+			
+			function animate() {
+				requestAnimationFrame(animate);
+				//Place the blocks onto the grid
+				for (var i = 0; i < meshes.length; i++)
+				{
+					mesh = meshes[i];
+					var a = i%5;
+					var b = Math.floor(i/5)%5;
+					var c = Math.floor(i/25);
+					if (arr[a][b][c] == 1)
+					{
+						//console.log(a,b,c);
+						mesh.position.set(a*50-100,b*50-80,c*50-100);
+					}
+					else
+					{
+						mesh.position.set(20000,0,0);
+					}
+				}
+				inc += clock.getDelta();
+				if (inc > 1.0){
+					//block.position.y -= 10;
+					inc = 0;
+				}
+				// find intersections
+
+				var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );
+
+				raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+
+				var intersects = raycaster.intersectObjects( scene.children );
+				
+				//console.log(intersects.length);
+				
+				if ( intersects.length > 0 ) {
+					if (intersects[0].face != null)
+					{
+						if ( INTERSECTED != intersects[ 0 ].object ) {
+							
+							if ( INTERSECTED )
+							{
+								INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+							}
+							INTERSECTED = intersects[ 0 ].object;
+							INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+							INTERSECTED.material.emissive.setHex( 0xff0000 );
+
+						}
+					}
+
+				}
+				else {
+
+					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+					INTERSECTED = null;
+
+				}
+				controls.update();
+				stats.update();
+				render();
+			}
+			
+			function drawGrid(height){
+				linesMaterial = new THREE.LineBasicMaterial({color:0x000000,linewidth:2.0});
+				
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(new THREE.Vector3( - squareSide*squareWidth*0.5, 0, 0 ) );
+				geometry.vertices.push(new THREE.Vector3( squareSide*squareWidth*0.5, 0, 0 ));
+				
+				for ( var i = 0; i <= squareSide; i ++ ) {
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.z = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					line.position.y = height;
+					scene.add( line );
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.x = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					line.position.y = height;
+					line.rotation.y = 90 * Math.PI / 180;
+					scene.add( line );
+
+				}
 			}
 			
 			function onDocumentKeyDown( event ) {
@@ -194,129 +334,6 @@
 						break;
 				}
 				//console.log(block.position);
-			}
-			
-			function onDocumentMouseMove( event ) {
-
-				event.preventDefault();
-
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
-			}
-			
-			//Piece selection
-			function onDocumentMouseDown( event ) {
-			
-			if (INTERSECTED)
-			{
-				if (INTERSECTED.material.color.getHex() == 0xff0000)
-					INTERSECTED.material.color.setHex(0xffffff);
-				else
-					INTERSECTED.material.color.setHex(0xff0000);
-			}
-			console.log("HERE");
-			}
-			
-			//Changes the size of the rendered scence to fit the new window
-			//Also changes the camera aspect to the window aspect so as to view
-			//the same way
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-				render();
-
-			}
-
-			function render() {
-				renderer.render( scene, camera);
-			}
-			
-			function animate() {
-				requestAnimationFrame(animate);
-				for (var i = 0; i < meshes.length; i++)
-				{
-					mesh = meshes[i];
-					var a = i%5;
-					var b = Math.floor(i/5)%5;
-					var c = Math.floor(i/25);
-					if (arr[a][b][c] == 1)
-					{
-						//console.log(a,b,c);
-						mesh.position.set(a*50-100,b*50-80,c*50-100);
-					}
-					else
-					{
-						mesh.position.set(20000,0,0);
-					}
-				}
-				inc += clock.getDelta();
-				if (inc > 1.0){
-					//block.position.y -= 10;
-					inc = 0;
-				}
-				// find intersections
-
-				var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );
-
-				raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
-
-				var intersects = raycaster.intersectObjects( scene.children );
-				
-				//console.log(intersects.length);
-				
-				if ( intersects.length > 0 ) {
-					if (intersects[0].face != null)
-					{
-						if ( INTERSECTED != intersects[ 0 ].object ) {
-
-							if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-
-							INTERSECTED = intersects[ 0 ].object;
-							INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-							INTERSECTED.material.emissive.setHex( 0xff0000 );
-
-						}
-					}
-
-				}
-				else {
-
-					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-
-					INTERSECTED = null;
-
-				}
-				controls.update();
-				stats.update();
-				render();
-			}
-			
-			function drawGrid(height){
-				linesMaterial = new THREE.LineBasicMaterial({color:0x000000,linewidth:2.0});
-				
-				var geometry = new THREE.Geometry();
-				geometry.vertices.push(new THREE.Vector3( - squareSide*squareWidth*0.5, 0, 0 ) );
-				geometry.vertices.push(new THREE.Vector3( squareSide*squareWidth*0.5, 0, 0 ));
-				
-				for ( var i = 0; i <= squareSide; i ++ ) {
-
-					var line = new THREE.Line( geometry, linesMaterial );
-					line.position.z = ( i * squareWidth ) - squareSide*squareWidth*0.5;
-					line.position.y = height;
-					scene.add( line );
-
-					var line = new THREE.Line( geometry, linesMaterial );
-					line.position.x = ( i * squareWidth ) - squareSide*squareWidth*0.5;
-					line.position.y = height;
-					line.rotation.y = 90 * Math.PI / 180;
-					scene.add( line );
-
-				}
 			}
 
 		</script>
