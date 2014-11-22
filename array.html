@@ -88,14 +88,22 @@
 					highl[i][j] = new Array();
 					for (var k = 0; k < 5; k++)
 					{
-						highl[i][j][k] = 1;
+						highl[i][j][k] = 0;
 					}
 				}
 			}
 			
-			highl[0][0] = [1, 1, 1, 1, 1],highl[1][0] = [1, 1, 1, 1, 1],highl[0][1] = [1, 1, 1, 1, 1],highl[1][1] = [1, 1, 1, 1, 1];
+			//highl[0][2] = [1, 1, 1, 1, 1],highl[1][0] = [1, 1, 1, 1, 1],highl[0][1] = [1, 1, 1, 1, 1],highl[1][1] = [1, 1, 1, 1, 1];
 			
-			highl[4][4] = [1, 1, 1, 1, 1],highl[3][4] = [1, 1, 1, 1, 1],highl[4][3] = [1, 1, 1, 1, 1],highl[3][3] = [1, 1, 1, 1, 1];
+			for (i = 0; i < 5; i ++)
+			{
+				for (j = 0; j < 3; j++)
+				{
+					highl[i][j] = [1, 1, 1, 0, 0];
+				}
+			}
+			
+			//highl[4][4] = [1, 1, 1, 1, 1],highl[3][4] = [1, 1, 1, 1, 1],highl[4][3] = [1, 1, 1, 1, 1],highl[3][3] = [1, 1, 1, 1, 1];
 			
 			
 			//arr[1][2][2] = 0;//(x,y,z). X is to left, y to up, z to forward (to you).
@@ -131,7 +139,7 @@
 				 var loader = new THREE.JSONLoader();
 				  var chessPiece = new Array();//Holds the chess Geometries
 				  loader.load( "modelsInJSON/bishop.json", function(geometry){
-						for ( var i = 0; i < 126; i ++ ) {
+						for ( var i = 0; i < 125; i ++ ) {
 						var material =  new THREE.MeshLambertMaterial( { color:0xFFFFFF, shading: THREE.FlatShading } );
 						//mesh = new THREE.Mesh(geometry,material);
 						mesh= new THREE.Mesh( geometry, material );
@@ -143,8 +151,8 @@
 						meshes.push(mesh);
 						scene.add( meshes[i]);
 					}
-					INTERSECTED = meshes[125];
-					meshes[125].position.set(2000,0,0);
+					INTERSECTED = null;
+					//meshes[125].position.set(2000,0,0);
 				  });
 				  /*
 				loader.load( "modelsInJSON/king.json", function(geometry){
@@ -229,7 +237,7 @@
 				{
 					if (CURR.material.transparent == false)//There is a chess piece
 					{
-						if (INTERSECTED.material.transparent == true)
+						if (INTERSECTED.material.transparent == true)//If the place selected is the plane
 						{
 							//console.log(CURR.position);
 							//(a*50-100,b*50-100,c*50-100);
@@ -241,19 +249,23 @@
 							var b2 = INTERSECTED.position.y/50 + 2;
 							var c2 = INTERSECTED.position.z/50 + 2;
 							//console.log(a2,b2,c2);
-							arr[a2][b2][c2] = 1;
-							arr[a][b][c] = 0;
+							if (highl[a2][b2][c2] == 1)//Can move there since it is highlighted
+							{
+								arr[a][b][c] = 0;
+								arr[a2][b2][c2] = 1;
+							}
 						}
 					}
 				}
 			}
-			if (INTERSECTED)
+			//Changes color for selection and deselection
+			if (INTERSECTED)//It hit something
 			{
 				//The intersected object is a chess piece
 				if (INTERSECTED.material.transparent == false)
 				{
 					//If it is already selected
-					if (INTERSECTED.material.color.getHex() == 0xff0000)
+					if (CURR == INTERSECTED)
 					{
 						INTERSECTED.material.color.setHex(0xffffff);
 						CURR = null;//No selected object
@@ -263,18 +275,19 @@
 					{
 						if (CURR)//If previous object exists
 						{
-							if (CURR.material.transparent == false)
+							if (CURR.material.transparent == false)//If the previous object is a chess piece
 								CURR.material.color.setHex(0xffffff);
-							else
+							else//If the previous object is a plane
 								CURR.material.color.setHex(0x00ff00);
 						}
 						INTERSECTED.material.color.setHex(0xff0000);
 						CURR = INTERSECTED;//The previous object is the highlighted object
 					}
 				}
-				else//The object is the plane
+				else//The intersected object is a the plane, don't do shit since it only has to highlight when moused over
 				{
-					//If it is already selected
+					
+					/*//If it is already selected
 					if (INTERSECTED.material.color.getHex() == 0xff0000)
 					{
 						INTERSECTED.material.color.setHex(0x00ff00);
@@ -292,18 +305,21 @@
 						}
 						INTERSECTED.material.color.setHex(0xff0000);
 						CURR = INTERSECTED;//The previous object is the highlighted object
-					}
+					}*/
 				}
 			}
 			else//If nothing is clicked on
 			{
 				if (CURR)//If previous object exists
 				{
-					CURR.material.color.setHex(0xffffff);
+					if (CURR.material.transparent == false)//Chess piece
+						CURR.material.color.setHex(0xffffff);
+					else//Plane piece
+						CURR.material.color.setHex(0x00ff00);
 				}
 				CURR = null;
 			}
-			
+			//A variable to see if a chess piece is selected
 			if (CURR)
 			{
 				if (CURR.material.transparent == false)//A chess piece
@@ -314,7 +330,7 @@
 			else
 				selected = 0;
 			
-			//console.log(CURR);
+			console.log(selected);
 			}
 			
 			//Changes the size of the rendered scence to fit the new window
@@ -360,8 +376,7 @@
 					}
 					else
 					{
-						if (grid[a][b][c])
-							grid[a][b][c].material.opacity = 0;
+						grid[a][b][c].material.opacity = 0;
 					}
 				}
 				inc += clock.getDelta();
@@ -412,7 +427,7 @@
 									{
 										INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
 									}
-									INTERSECTED = meshes[125];//an object that is off screen
+									INTERSECTED = null;//an object that is off screen
 									INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
 									INTERSECTED.material.emissive.setHex( 0xff0000 );
 								}
@@ -452,7 +467,7 @@
 				}
 			}
 			
-			function createGrid(height){
+			function createGrid(xpos){
 				var planeGrid = new Array();
 				var geometry = new THREE.PlaneGeometry( 50, 50, 32);
 				for (var i = 0; i < 5; i++)
@@ -464,7 +479,7 @@
 						material.transparent = true;
 						var plane = new THREE.Mesh( geometry, material );
 						plane.rotation.x = 90 * Math.PI / 180;
-						plane.position.set(i*50-100,height,j*50-100);
+						plane.position.set(xpos,i*50-100,j*50-100);
 						planeGrid[i].push(plane);
 						scene.add( plane );
 					}
