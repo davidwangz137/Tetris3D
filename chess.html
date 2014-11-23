@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>3D Chess</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				color:#000;
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+
+			}
+
+			a {
+				color: red;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="container"></div>
+		<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - 3D Chess Game
+		</div>
+
+		<script src="js/three.min.js"></script>
+
+		<script src="js/controls/OrbitControls.js"></script>
+
+		<script src="js/libs/stats.min.js"></script>
+		
+		<script>
+
+			var container, stats;
+
+			var camera, controls, clock, grid = new Array(), highl = new Array(), scene, renderer, raycaster, mesh, meshes = new Array();
+
+			var mouse = new THREE.Vector2(), INTERSECTED = null, CURR = null;
+			
+			var squareWidth = 50, squareSide = 5;
+			
+			var selected = 0;//A variable to check if a piece is selected
+			
+			var scaler = 25;//A variable for how much the chess piece is scaled in size
+			
+			var loader = new THREE.JSONLoader();//Loads the textures
+			
+			//Create the 3 dimensional array
+			
+			//Each different character corresponds to a different model (use different colours to differentiate for now)
+			
+			var arr = new Array();
+			for (var i = 0; i < 5; i++)
+			{
+				arr[i] = new Array();
+				for (var j = 0; j < 5; j++)
+				{
+					arr[i][j] = new Array();
+					for (var k = 0; k < 5; k++)
+					{
+						arr[i][j][k] = 0;
+					}
+				}
+			}
+			
+			arr[0][0] = ['r', 'n', 'k', 'n', 'r'],arr[1][0] = ['p', 'p', 'p', 'p', 'p'],arr[0][1] = ['b', 'u', 'q', 'b', 'u'],arr[1][1] = ['p', 'p', 'p', 'p', 'p'];
+			
+			arr[4][4] = ['R', 'N', 'K', 'N', 'R'],arr[3][4] = ['P', 'P', 'P', 'P', 'P'],arr[4][3] = ['B', 'U', 'Q', 'B', 'U'],arr[3][3] = ['P', 'P', 'P', 'P', 'P'];
+			
+			
+			for (var i = 0; i < 5; i++)
+			{
+				highl[i] = new Array();
+				for (var j = 0; j < 5; j++)
+				{
+					highl[i][j] = new Array();
+					for (var k = 0; k < 5; k++)
+					{
+						highl[i][j][k] = 0;
+					}
+				}
+			}
+			
+			init();
+			
+			//Loads the chess piece given the path and the character that denotes that chess piece
+			function loadPiece(path, character, col)
+			{
+				loader.load(path, function(geometry){
+					for (var i = 0; i < 5; i++)
+					{
+						for (var j = 0; j < 5; j++)
+						{
+							for (var k = 0; k < 5; k++)
+							{
+								if (arr[i][j][k] == character)
+								{
+									var material =  new THREE.MeshLambertMaterial( { color:col, shading: THREE.FlatShading } );
+									mesh= new THREE.Mesh( geometry, material );
+									mesh.matrixAutoUpdate = true;
+									mesh.position.set(i*50-100,j*50-100,k*50-100);
+									mesh.scale.x = scaler;
+									mesh.scale.y = scaler;
+									mesh.scale.z = scaler;
+									meshes[i][j][k] = mesh;
+									//console.log(meshes[i][j][k]);
+									scene.add(mesh);//Need to actually add the mesh to the scene. When swapping, meshes already exist on the scene
+								}
+							}
+						}
+					}
+				});
+			}
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				
+				//Origin camera state
+				
+				camera.position.set(0,150,300);
+
+				controls = new THREE.OrbitControls( camera );
+				controls.damping = 0.2;
+				controls.addEventListener( 'change', render );
+
+				scene = new THREE.Scene();
+				
+				// Draw the Grid
+				// Add plane for highlighting
+				
+				for (var i = 0; i < 5; i++)
+				{
+					drawGrid(50*i-100);
+					createGrid(50*i-100);
+				}
+				
+				// Chess pieces. First load a null Object3D to keep their places
+				
+				for (var i = 0; i < 5; i++)
+				{
+					meshes[i] = new Array();
+					for (var j = 0; j < 5; j++)
+					{
+						meshes[i][j] = new Array();
+						for (var k = 0; k < 5; k++)
+						{
+							mesh = new THREE.Object3D();
+							mesh.matrixAutoUpdate = false;//Use this to differentiate between null pieces
+							mesh.position.set(i*50-100,j*50-100,k*50-100);
+							mesh.scale.x = scaler;
+							mesh.scale.y = scaler;
+							mesh.scale.z = scaler;
+							meshes[i][j].push(mesh);
+							scene.add(mesh);
+						}
+					}
+				}
+				arr[0][0] = ['r', 'n', 'k', 'n', 'r'],arr[1][0] = ['p', 'p', 'p', 'p', 'p'],arr[0][1] = ['b', 'u', 'q', 'b', 'u'],arr[1][1] = ['p', 'p', 'p', 'p', 'p'];
+			
+				loadPiece( "modelsInJSON/bishop.json",'b',0xFFFFFF);
+				//loadPiece("modelsInJSON/king.json",'k',0x123456);
+				loadPiece("modelsInJSON/queen.json",'q',0x000000);
+				loadPiece("modelsInJSON/rook.json",'r',0x666666);
+				loadPiece("modelsInJSON/pawn.json",'p',0x654321);
+				loadPiece("modelsInJSON/knight.json",'u',0x737373);//Replace with unicorn model
+				loadPiece("modelsInJSON/knight.json",'n',0x121212);
+				  /*
+				loader.load( "modelsInJSON/king.json", function(geometry){
+					chessPiece.push(geometry);
+				  });
+				  loader.load( "modelsInJSON/knight.json", function(geometry){
+					chessPiece.push(geometry);
+				  });
+				  loader.load( "modelsInJSON/pawn.json", function(geometry){
+					chessPiece.push(geometry);
+				  });
+				  loader.load( "modelsInJSON/queen.json", function(geometry){
+					chessPiece.push(geometry);
+				  });
+				  loader.load( "modelsInJSON/rook.json", function(geometry){
+					chessPiece.push(geometry);
+				  });*/
+				
+				// lights
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 1, 1, 1 );
+				scene.add( light );
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( -1, 1, -1 );
+				scene.add( light );
+
+				light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: false } );
+				renderer.setClearColor( 0xffffff, 1 );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container = document.getElementById( 'container' );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				container.appendChild( stats.domElement );
+
+				// Add the different event listeners
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+				
+				// Add a clock to synchronize movements
+				
+				clock = new THREE.Clock(true);//true to start immediately
+				
+				// Add raycaster to select elements
+				
+				raycaster = new THREE.Raycaster();
+				
+				animate();
+
+			}
+			
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+			}
+			
+			//Piece selection
+			function onDocumentMouseDown( event ) {
+			//Moves the piece
+			if (INTERSECTED)
+			{
+				//There is a previous object selected
+				if (CURR)
+				{
+					if (CURR.material.transparent == false)//There is a chess piece
+					{
+						if (INTERSECTED.material.transparent == true)//If the place selected is the plane
+						{
+							//console.log(CURR.position);
+							//(a*50-100,b*50-100,c*50-100);
+							var a = CURR.position.x/50 + 2;
+							var b = CURR.position.y/50 + 2;
+							var c = CURR.position.z/50 + 2;
+							//console.log(a,b,c);
+							var a2 = INTERSECTED.position.x/50 + 2;
+							var b2 = INTERSECTED.position.y/50 + 2;
+							var c2 = INTERSECTED.position.z/50 + 2;
+							//console.log(a2,b2,c2);
+							if (highl[a2][b2][c2] == 1)//Can move there since it is highlighted
+							{
+								if (meshes[a2][b2][c2].matrixAutoUpdate == false)//Null piece
+								{
+									var temp = arr[a][b][c];//Use this in case piece is placed back on own grid. Never down in real game
+									arr[a][b][c] = arr[a2][b2][c2];
+									arr[a2][b2][c2] = temp;
+									temp = meshes[a2][b2][c2];
+									var newPos = temp.position.clone();//Clones the new position
+									var oldPos = meshes[a][b][c].position.clone();//Clones the old position
+									meshes[a2][b2][c2] = meshes[a][b][c];
+									meshes[a2][b2][c2].position.set(newPos.x,newPos.y,newPos.z);
+									meshes[a][b][c] = temp;
+									meshes[a][b][c].position.set(oldPos.x,oldPos.y,oldPos.z);
+									CURR = meshes[a2][b2][c2];//Set the intersected object to be the new object
+									CURR.material.color.setHex(0xffffff);
+									CURR = null;//No piece is selected. Still keep keep INTERSECTED for correct highlighting
+								}
+								else//Move to capture the other piece
+								{
+									var temp = arr[a][b][c];//Use this in case piece is placed back on own grid. Never down in real game
+									arr[a][b][c] = 0;
+									arr[a2][b2][c2] = temp;
+									var newPos = meshes[a2][b2][c2].position.clone();//Clones the new position
+									var oldPos = meshes[a][b][c].position.clone();//Clones the old position
+									meshes[a2][b2][c2] = meshes[a][b][c];
+									meshes[a2][b2][c2].position.set(newPos.x,newPos.y,newPos.z);
+									meshes[a][b][c] = new THREE.Object3D();//Null piece
+									meshes[a][b][c].position.set(oldPos.x,oldPos.y,oldPos.z);
+									CURR = meshes[a2][b2][c2];//Set the intersected object to be the new object
+									CURR.material.color.setHex(0xffffff);
+									CURR = null;//No piece is selected. Still keep keep INTERSECTED for correct highlighting
+								}
+							}
+						}
+					}
+				}
+			}
+			//Changes color for selection and deselection
+			if (INTERSECTED)//It hit something
+			{
+				//The intersected object is a chess piece
+				if (INTERSECTED.material.transparent == false)
+				{
+					//If it is already selected
+					if (CURR == INTERSECTED)
+					{
+						INTERSECTED.material.color.setHex(0xffffff);
+						CURR = null;//No selected object
+					}
+					//If selecting something else
+					else
+					{
+						if (CURR)//If previous object exists
+						{
+							if (CURR.material.transparent == false)//If the previous object is a chess piece
+								CURR.material.color.setHex(0xffffff);
+							else//If the previous object is a plane
+								CURR.material.color.setHex(0x00ff00);
+						}
+						INTERSECTED.material.color.setHex(0xff0000);
+						CURR = INTERSECTED;//The previous object is the highlighted object
+					}
+				}
+			}
+			else//If nothing is clicked on
+			{
+				if (CURR)//If previous object exists
+				{
+					if (CURR.material.transparent == false)//Chess piece
+						CURR.material.color.setHex(0xffffff);
+					else//Plane piece
+						CURR.material.color.setHex(0x00ff00);
+				}
+				CURR = null;
+			}
+			//A variable to see if a chess piece is selected
+			if (CURR)
+			{
+				if (CURR.material.transparent == false)//A chess piece
+					selected = 1;
+				else
+					selected = 0;
+			}
+			else
+				selected = 0;
+			if (selected)
+			{
+				var a = CURR.position.x/50 + 2;
+				var b = CURR.position.y/50 + 2;
+				var c = CURR.position.z/50 + 2;
+				highlight(a,b,c,arr[a][b][c]);//Highlights the board depending on the piece clicked
+			}
+			else
+			{
+				highlight(0,0,0,0);//Wipes the highlights
+			}
+			console.log(selected);
+			}
+			
+			//Changes the size of the rendered scence to fit the new window
+			//Also changes the camera aspect to the window aspect so as to view
+			//the same way
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				render();
+
+			}
+			
+			//Changes highl depending on the piece selected
+			function highlight(a,b,c,str)
+			{
+				for (var i = 0; i < 5; i++)
+				{
+					highl[i] = new Array();
+					for (var j = 0; j < 5; j++)
+					{
+						highl[i][j] = new Array();
+						for (var k = 0; k < 5; k++)
+						{
+							highl[i][j][k] = 0;
+						}
+					}
+				}
+				if (str != 0)//Pond
+				{
+					highl[(a+1)%5][(b+1)%5][(c+1)%5] = 1;
+				}
+			}
+
+			function render() {
+				renderer.render( scene, camera);
+			}
+			
+			function animate() {
+				requestAnimationFrame(animate);
+				//Place the blocks onto the grid
+				for (var i = 0; i < 125; i++)
+				{
+					var a = i%5;
+					var b = Math.floor(i/5)%5;
+					var c = Math.floor(i/25);
+					if (highl[a][b][c] == 1)//Plane is to be highlighted
+					{
+						grid[a][b][c].material.opacity = 1;
+					}
+					else
+					{
+						grid[a][b][c].material.opacity = 0;
+					}
+				}
+				
+				// find intersections with the mouse
+
+				var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );
+
+				raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+
+				var intersects = raycaster.intersectObjects( scene.children );
+				
+				//console.log(intersects.length);
+				
+				if ( intersects.length > 0 ) {
+					if (intersects[0].face != null)
+					{// && intersects[ 0 ].object.material.transparent == false
+						if ( INTERSECTED != intersects[ 0 ].object ) {
+							//The object is a chess piece
+							if(intersects[ 0 ].object.material.transparent == false)
+							{
+								if ( INTERSECTED )
+								{
+									INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+								}
+								INTERSECTED = intersects[ 0 ].object;
+								INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+								INTERSECTED.material.emissive.setHex( 0xff0000 );
+							}
+							else//The object is one of the planes
+							{
+								if (selected == 1)//If a chess piece is selected
+								{
+									if ( INTERSECTED )
+									{
+										INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+									}
+									INTERSECTED = intersects[ 0 ].object;
+									INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+									INTERSECTED.material.emissive.setHex( 0xff0000 );
+								}
+								else
+								{
+									if ( INTERSECTED )
+									{
+										INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+									}
+									INTERSECTED = null;//an object that is off screen
+									INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+									INTERSECTED.material.emissive.setHex( 0xff0000 );
+								}
+							}
+						}
+					}
+				}
+				else {
+					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+					INTERSECTED = null;
+				}
+				controls.update();
+				stats.update();
+				render();
+			}
+			
+			function drawGrid(height){
+				linesMaterial = new THREE.LineBasicMaterial({color:0x000000,linewidth:2.0});
+				
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(new THREE.Vector3( - squareSide*squareWidth*0.5, 0, 0 ) );
+				geometry.vertices.push(new THREE.Vector3( squareSide*squareWidth*0.5, 0, 0 ));
+				
+				for ( var i = 0; i <= squareSide; i ++ ) {
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.z = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					line.position.y = height;
+					scene.add( line );
+
+					var line = new THREE.Line( geometry, linesMaterial );
+					line.position.x = ( i * squareWidth ) - squareSide*squareWidth*0.5;
+					line.position.y = height;
+					line.rotation.y = 90 * Math.PI / 180;
+					scene.add( line );
+
+				}
+			}
+			
+			function createGrid(xpos){
+				var planeGrid = new Array();
+				var geometry = new THREE.PlaneGeometry( 50, 50, 32);
+				for (var i = 0; i < 5; i++)
+				{
+					planeGrid[i] = new Array();
+					for (var j = 0; j < 5; j++)
+					{
+						var material = new THREE.MeshLambertMaterial( {color: 0x00ff00, side: THREE.DoubleSide} );
+						material.transparent = true;
+						var plane = new THREE.Mesh( geometry, material );
+						plane.rotation.x = 90 * Math.PI / 180;
+						plane.position.set(xpos,i*50-100,j*50-100);
+						planeGrid[i].push(plane);
+						scene.add( plane );
+					}
+				}
+				grid.push(planeGrid);
+			}
+
+		</script>
+
+	</body>
+</html>
+
