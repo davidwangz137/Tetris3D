@@ -43,6 +43,8 @@
 
 		<script src="js/libs/stats.min.js"></script>
 		
+		<script src="js/moves.js"></script>
+		
 		<script>
 
 			var container, stats;
@@ -172,29 +174,15 @@
 				}
 				arr[0][0] = ['r', 'n', 'k', 'n', 'r'],arr[1][0] = ['p', 'p', 'p', 'p', 'p'],arr[0][1] = ['b', 'u', 'q', 'b', 'u'],arr[1][1] = ['p', 'p', 'p', 'p', 'p'];
 			
-				loadPiece( "modelsInJSON/bishop.json",'b',0xFFFFFF);
-				//loadPiece("modelsInJSON/king.json",'k',0x123456);
-				loadPiece("modelsInJSON/queen.json",'q',0x000000);
-				loadPiece("modelsInJSON/rook.json",'r',0x666666);
-				loadPiece("modelsInJSON/pawn.json",'p',0x654321);
-				loadPiece("modelsInJSON/knight.json",'u',0x737373);//Replace with unicorn model
-				loadPiece("modelsInJSON/knight.json",'n',0x121212);
-				  /*
-				loader.load( "modelsInJSON/king.json", function(geometry){
-					chessPiece.push(geometry);
-				  });
-				  loader.load( "modelsInJSON/knight.json", function(geometry){
-					chessPiece.push(geometry);
-				  });
-				  loader.load( "modelsInJSON/pawn.json", function(geometry){
-					chessPiece.push(geometry);
-				  });
-				  loader.load( "modelsInJSON/queen.json", function(geometry){
-					chessPiece.push(geometry);
-				  });
-				  loader.load( "modelsInJSON/rook.json", function(geometry){
-					chessPiece.push(geometry);
-				  });*/
+				loadPiece( "modelsInJSON/bishop.json",'b',0x000000);
+				//loadPiece("modelsInJSON/king.json",'k',0x000000);
+				//loadPiece("modelsInJSON/queen.json",'q',0x000000);
+				//loadPiece("modelsInJSON/rook.json",'r',0x000000);
+				//loadPiece("modelsInJSON/pawn.json",'p',0x000000);
+				//loadPiece("modelsInJSON/knight.json",'u',0x000000);//Replace with unicorn model
+				//loadPiece("modelsInJSON/knight.json",'n',0x000000);
+				
+				loadPiece( "modelsInJSON/bishop.json",'B',0xFFFFFF);
 				
 				// lights
 
@@ -288,22 +276,33 @@
 									meshes[a][b][c] = temp;
 									meshes[a][b][c].position.set(oldPos.x,oldPos.y,oldPos.z);
 									CURR = meshes[a2][b2][c2];//Set the intersected object to be the new object
-									CURR.material.color.setHex(0xffffff);
+									if(upper(arr[a2][b2][c2]))
+										CURR.material.color.setHex(0xffffff);
+									else
+										CURR.material.color.setHex(0x000000);
 									CURR = null;//No piece is selected. Still keep keep INTERSECTED for correct highlighting
 								}
 								else//Move to capture the other piece
 								{
+									console.log("Omnomnom");
 									var temp = arr[a][b][c];//Use this in case piece is placed back on own grid. Never down in real game
 									arr[a][b][c] = 0;
 									arr[a2][b2][c2] = temp;
 									var newPos = meshes[a2][b2][c2].position.clone();//Clones the new position
 									var oldPos = meshes[a][b][c].position.clone();//Clones the old position
-									meshes[a2][b2][c2] = meshes[a][b][c];
+									scene.remove(meshes[a2][b2][c2]);
+									meshes[a2][b2][c2] = meshes[a][b][c].clone();
 									meshes[a2][b2][c2].position.set(newPos.x,newPos.y,newPos.z);
+									scene.add(meshes[a2][b2][c2]);
+									scene.remove(meshes[a][b][c]);
 									meshes[a][b][c] = new THREE.Object3D();//Null piece
 									meshes[a][b][c].position.set(oldPos.x,oldPos.y,oldPos.z);
+									scene.add(meshes[a][b][c]);
 									CURR = meshes[a2][b2][c2];//Set the intersected object to be the new object
-									CURR.material.color.setHex(0xffffff);
+									if(upper(arr[a2][b2][c2]))
+										CURR.material.color.setHex(0xffffff);
+									else
+										CURR.material.color.setHex(0x000000);
 									CURR = null;//No piece is selected. Still keep keep INTERSECTED for correct highlighting
 								}
 							}
@@ -320,7 +319,13 @@
 					//If it is already selected
 					if (CURR == INTERSECTED)
 					{
-						INTERSECTED.material.color.setHex(0xffffff);
+						var a = CURR.position.x/50 + 2;
+						var b = CURR.position.y/50 + 2;
+						var c = CURR.position.z/50 + 2;
+						if (upper(arr[a][b][c]))
+							CURR.material.color.setHex(0xffffff);
+						else
+							CURR.material.color.setHex(0x000000);
 						CURR = null;//No selected object
 					}
 					//If selecting something else
@@ -329,7 +334,15 @@
 						if (CURR)//If previous object exists
 						{
 							if (CURR.material.transparent == false)//If the previous object is a chess piece
-								CURR.material.color.setHex(0xffffff);
+							{
+								var a = CURR.position.x/50 + 2;
+								var b = CURR.position.y/50 + 2;
+								var c = CURR.position.z/50 + 2;
+								if (upper(arr[a][b][c]))
+									CURR.material.color.setHex(0xffffff);
+								else
+									CURR.material.color.setHex(0x000000);
+							}
 							else//If the previous object is a plane
 								CURR.material.color.setHex(0x00ff00);
 						}
@@ -343,7 +356,15 @@
 				if (CURR)//If previous object exists
 				{
 					if (CURR.material.transparent == false)//Chess piece
-						CURR.material.color.setHex(0xffffff);
+					{
+						var a = CURR.position.x/50 + 2;
+							var b = CURR.position.y/50 + 2;
+							var c = CURR.position.z/50 + 2;
+							if (upper(arr[a][b][c]))
+								CURR.material.color.setHex(0xffffff);
+							else
+								CURR.material.color.setHex(0x000000);
+					}
 					else//Plane piece
 						CURR.material.color.setHex(0x00ff00);
 				}
@@ -370,7 +391,7 @@
 			{
 				highlight(0,0,0,0);//Wipes the highlights
 			}
-			console.log(selected);
+			//console.log(selected);
 			}
 			
 			//Changes the size of the rendered scence to fit the new window
@@ -402,10 +423,20 @@
 						}
 					}
 				}
-				if (str != 0)//Pond
-				{
-					highl[(a+1)%5][(b+1)%5][(c+1)%5] = 1;
-				}
+				if (str == 'b' || str == 'B')//bishops
+					bishop(a,b,c,str);
+				if (str == 'n' || str == 'N')//knights
+					knight(a,b,c,str);
+				if (str == 'k' || str == 'K')//kings
+					king(a,b,c,str);
+				if (str == 'q' || str == 'Q')//queens
+					queen(a,b,c,str);
+				if (str == 'u' || str == 'U')//unicorns
+					unicorn(a,b,c,str);
+				if (str == 'r' || str == 'R')//rooks
+					rook(a,b,c,str);
+				if (str == 'p' || str == 'P')//pawns
+					pawn(a,b,c,str);
 			}
 
 			function render() {
