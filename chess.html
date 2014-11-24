@@ -35,6 +35,7 @@
 		<div id="container"></div>
 		<div id="info">
 			<a href="http://threejs.org" target="_blank">three.js</a> - 3D Chess Game
+			<p id = "turn">White's move</p>
 		</div>
 
 		<script src="js/three.min.js"></script>
@@ -52,6 +53,8 @@
 			var camera, controls, clock, grid = new Array(), highl = new Array(), scene, renderer, raycaster, mesh, meshes = new Array();
 
 			var mouse = new THREE.Vector2(), INTERSECTED = null, CURR = null;
+			
+			var whiteMove = 1;//Switch between the different players
 			
 			var squareWidth = 50, squareSide = 5;
 			
@@ -305,6 +308,7 @@
 										CURR.material.color.setHex(0x000000);
 									CURR = null;//No piece is selected. Still keep keep INTERSECTED for correct highlighting
 								}
+							switchT();//Switch turns
 							}
 						}
 					}
@@ -316,38 +320,70 @@
 				//The intersected object is a chess piece
 				if (INTERSECTED.material.transparent == false)
 				{
-					//If it is already selected
-					if (CURR == INTERSECTED)
+					var a = INTERSECTED.position.x/50 + 2;
+					var b = INTERSECTED.position.y/50 + 2;
+					var c = INTERSECTED.position.z/50 + 2;
+					//Select white piece on white move
+					if (whiteMove == 1 && upper(arr[a][b][c]))
 					{
-						var a = CURR.position.x/50 + 2;
-						var b = CURR.position.y/50 + 2;
-						var c = CURR.position.z/50 + 2;
-						if (upper(arr[a][b][c]))
-							CURR.material.color.setHex(0xffffff);
-						else
-							CURR.material.color.setHex(0x000000);
-						CURR = null;//No selected object
-					}
-					//If selecting something else
-					else
-					{
-						if (CURR)//If previous object exists
+						//If it is already selected
+						if (CURR == INTERSECTED)
 						{
-							if (CURR.material.transparent == false)//If the previous object is a chess piece
-							{
-								var a = CURR.position.x/50 + 2;
-								var b = CURR.position.y/50 + 2;
-								var c = CURR.position.z/50 + 2;
-								if (upper(arr[a][b][c]))
-									CURR.material.color.setHex(0xffffff);
-								else
-									CURR.material.color.setHex(0x000000);
-							}
-							else//If the previous object is a plane
-								CURR.material.color.setHex(0x00ff00);
+							if (upper(arr[a][b][c]))
+								CURR.material.color.setHex(0xffffff);
+							else
+								CURR.material.color.setHex(0x000000);
+							CURR = null;//No selected object
 						}
-						INTERSECTED.material.color.setHex(0xff0000);
-						CURR = INTERSECTED;//The previous object is the highlighted object
+						//If selecting something else
+						else
+						{
+							if (CURR)//If previous object exists
+							{
+								if (CURR.material.transparent == false)//If the previous object is a chess piece
+								{
+									if (upper(arr[a][b][c]))
+										CURR.material.color.setHex(0xffffff);
+									else
+										CURR.material.color.setHex(0x000000);
+								}
+								else//If the previous object is a plane
+									CURR.material.color.setHex(0x00ff00);
+							}
+							INTERSECTED.material.color.setHex(0xff0000);
+							CURR = INTERSECTED;//The previous object is the highlighted object
+						}
+					}
+					//Select black piece on black move
+					if (whiteMove == 0 && lower(arr[a][b][c]))
+					{
+						//If it is already selected
+						if (CURR == INTERSECTED)
+						{
+							if (upper(arr[a][b][c]))
+								CURR.material.color.setHex(0xffffff);
+							else
+								CURR.material.color.setHex(0x000000);
+							CURR = null;//No selected object
+						}
+						//If selecting something else
+						else
+						{
+							if (CURR)//If previous object exists
+							{
+								if (CURR.material.transparent == false)//If the previous object is a chess piece
+								{
+									if (upper(arr[a][b][c]))
+										CURR.material.color.setHex(0xffffff);
+									else
+										CURR.material.color.setHex(0x000000);
+								}
+								else//If the previous object is a plane
+									CURR.material.color.setHex(0x00ff00);
+							}
+							INTERSECTED.material.color.setHex(0xff0000);
+							CURR = INTERSECTED;//The previous object is the highlighted object
+						}
 					}
 				}
 			}
@@ -478,13 +514,19 @@
 							//The object is a chess piece
 							if(intersects[ 0 ].object.material.transparent == false)
 							{
-								if ( INTERSECTED )
+								var a = intersects[ 0 ].object.position.x/50 + 2;
+								var b = intersects[ 0 ].object.position.y/50 + 2;
+								var c = intersects[ 0 ].object.position.z/50 + 2;
+								if ((whiteMove == 1 && upper(arr[a][b][c])) || (whiteMove == 0 && lower(arr[a][b][c])))
 								{
-									INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+									if ( INTERSECTED )
+									{
+										INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+									}
+									INTERSECTED = intersects[ 0 ].object;
+									INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+									INTERSECTED.material.emissive.setHex( 0xff0000 );
 								}
-								INTERSECTED = intersects[ 0 ].object;
-								INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-								INTERSECTED.material.emissive.setHex( 0xff0000 );
 							}
 							else//The object is one of the planes
 							{

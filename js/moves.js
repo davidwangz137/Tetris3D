@@ -657,3 +657,16 @@ function lower(str)
 	return false;
 }
 
+function switchT()
+{
+	if (whiteMove)
+	{
+		document.getElementById("turn").innerHTML = "Black's move";
+		whiteMove = 0;
+	}
+	else
+	{
+		document.getElementById("turn").innerHTML = "White's move";
+		whiteMove = 1;
+	}
+}
