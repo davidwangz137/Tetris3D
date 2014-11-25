@@ -64,6 +64,8 @@
 			
 			var loader = new THREE.JSONLoader();//Loads the textures
 			
+			var scCube//Holds the skybox textures
+			
 			//Create the 3 dimensional array
 			
 			//Each different character corresponds to a different model (use different colours to differentiate for now)
@@ -103,7 +105,7 @@
 			init();
 			
 			//Loads the chess piece given the path and the character that denotes that chess piece
-			function loadPiece(path, character, col)
+			function loadPiece(path, character, col, ref)
 			{
 				loader.load(path, function(geometry){
 					for (var i = 0; i < 5; i++)
@@ -114,7 +116,8 @@
 							{
 								if (arr[i][j][k] == character)
 								{
-									var material =  new THREE.MeshLambertMaterial( { color:col, shading: THREE.FlatShading } );
+									//var material =  new THREE.MeshLambertMaterial( { color:col, shading: THREE.FlatShading } );
+									var material =  new THREE.MeshLambertMaterial( { color:col, envMap: scCube,reflectivity:ref } );
 									mesh= new THREE.Mesh( geometry, material );
 									mesh.matrixAutoUpdate = true;
 									mesh.position.set(i*50-100,j*50-100,k*50-100);
@@ -130,10 +133,37 @@
 					}
 				});
 			}
+			
+			//Textures ripped from http://www.script-tutorials.com/webgl-with-three-js-lesson-5/
+			
+			//Draws a skybox
+			function drawSimpleSkybox(size) {
+			    // define path and box sides images
+			    var path = 'skybox/';
+			    var sides = [ path + 'sbox_px.jpg', path + 'sbox_nx.jpg', path + 'sbox_py.jpg', path + 'sbox_ny.jpg', path + 'sbox_pz.jpg', path + 'sbox_nz.jpg' ];
+			 
+			    // load images
+			    scCube = THREE.ImageUtils.loadTextureCube(sides);
+			    scCube.format = THREE.RGBFormat;
+			 
+			    // prepare skybox material (shader)
+			    var skyShader = THREE.ShaderLib["cube"];
+			    skyShader.uniforms["tCube"].value = scCube;
+			    var skyMaterial = new THREE.ShaderMaterial( {
+			      fragmentShader: skyShader.fragmentShader, vertexShader: skyShader.vertexShader,
+			      uniforms: skyShader.uniforms, depthWrite: false, side: THREE.BackSide
+		        });
+			 
+			    // create Mesh with cube geometry and add to the scene
+			    var skyBox = new THREE.Mesh(new THREE.CubeGeometry(size, size, size), skyMaterial);
+			    skyMaterial.needsUpdate = true;
+			 
+			    scene.add(skyBox);
+			}
 
 			function init() {
 
-				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 				
 				//Origin camera state
 				
@@ -177,7 +207,7 @@
 				}
 				arr[0][0] = ['r', 'n', 'k', 'n', 'r'],arr[1][0] = ['p', 'p', 'p', 'p', 'p'],arr[0][1] = ['b', 'u', 'q', 'b', 'u'],arr[1][1] = ['p', 'p', 'p', 'p', 'p'];
 			
-				loadPiece( "modelsInJSON/bishop.json",'b',0x000000);
+				loadPiece( "modelsInJSON/bishop.json",'b',0x050505,0.7);
 				//loadPiece("modelsInJSON/king.json",'k',0x000000);
 				//loadPiece("modelsInJSON/queen.json",'q',0x000000);
 				//loadPiece("modelsInJSON/rook.json",'r',0x000000);
@@ -185,7 +215,7 @@
 				//loadPiece("modelsInJSON/knight.json",'u',0x000000);//Replace with unicorn model
 				//loadPiece("modelsInJSON/knight.json",'n',0x000000);
 				
-				loadPiece( "modelsInJSON/bishop.json",'B',0xFFFFFF);
+				loadPiece( "modelsInJSON/bishop.json",'B',0xFFFFFF,0.5);
 				
 				// lights
 
@@ -228,6 +258,10 @@
 				// Add raycaster to select elements
 				
 				raycaster = new THREE.Raycaster();
+				
+				//Draws the skybox
+				
+				drawSimpleSkybox(2000);
 				
 				animate();
 
