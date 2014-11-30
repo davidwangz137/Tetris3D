@@ -60,7 +60,7 @@
 			
 			var selected = 0;//A variable to check if a piece is selected
 			
-			var scaler = 25;//A variable for how much the chess piece is scaled in size
+			var scaler = 13;//A variable for how much the chess piece is scaled in size
 			
 			var loader = new THREE.JSONLoader();//Loads the textures
 			
@@ -208,14 +208,20 @@
 				arr[0][0] = ['r', 'n', 'k', 'n', 'r'],arr[1][0] = ['p', 'p', 'p', 'p', 'p'],arr[0][1] = ['b', 'u', 'q', 'b', 'u'],arr[1][1] = ['p', 'p', 'p', 'p', 'p'];
 			
 				loadPiece( "modelsInJSON/bishop.json",'b',0x050505,0.7);
-				//loadPiece("modelsInJSON/king.json",'k',0x000000);
-				//loadPiece("modelsInJSON/queen.json",'q',0x000000);
-				//loadPiece("modelsInJSON/rook.json",'r',0x000000);
-				//loadPiece("modelsInJSON/pawn.json",'p',0x000000);
-				//loadPiece("modelsInJSON/knight.json",'u',0x000000);//Replace with unicorn model
-				//loadPiece("modelsInJSON/knight.json",'n',0x000000);
+				loadPiece("modelsInJSON/king.json",'k',0x050505,0.7);
+				loadPiece("modelsInJSON/queen.json",'q',0x050505,0.7);
+				loadPiece("modelsInJSON/rook.json",'r',0x050505,0.7);
+				loadPiece("modelsInJSON/pawn.json",'p',0x050505,0.7);
+				loadPiece("modelsInJSON/unicorn2.json",'u',0x050505,0.7);
+				loadPiece("modelsInJSON/knight2.json",'n',0x050505,0.7);
 				
 				loadPiece( "modelsInJSON/bishop.json",'B',0xFFFFFF,0.5);
+				loadPiece("modelsInJSON/king.json",'K',0xFFFFFF,0.5);
+				loadPiece("modelsInJSON/queen.json",'Q',0xFFFFFF,0.5);
+				loadPiece("modelsInJSON/rook.json",'R',0xFFFFFF,0.5);
+				loadPiece("modelsInJSON/pawn.json",'P',0xFFFFFF,0.5);
+				loadPiece("modelsInJSON/unicorn.json",'U',0xFFFFFF,0.5);
+				loadPiece("modelsInJSON/knight.json",'N',0xFFFFFF,0.5);
 				
 				// lights
 
