@@ -6,7 +6,7 @@ RULES:
 (You can check it on the wikipedia article for now, you still win by checkmate)
 
 Hosted:
-samuelwu.me/3dchess
+htto://samuelwu.me/3dchess
 
 TODO: 
 Music?
