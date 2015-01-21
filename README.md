@@ -1,19 +1,13 @@
-Tetris3D
-========
+Tetris3D AKA. 3D Raumshach Chess.
+=================================
+It's 3D chess. Yes, actually chess in 3 dimensions. For more information: http://en.wikipedia.org/wiki/Three-dimensional_chess
+RULES:
+(WILL WRITE LATER)
+(You can check it on the wikipedia article for now, you still win by checkmate)
 
-A tetris game in 3D created used three.js
+Hosted:
+samuelwu.me/3dchess
 
-TODO:
-
-Implement tetris block creation system
-
-Implement movement of tetris blocks and checking when it hits
-
-Remove blocks when a layer of them exists
-
-Implement 3D grid system
-
-Later:
-
-Add music
-Make it into chess
+TODO: 
+Music?
+AI?
